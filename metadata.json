@@ -1,0 +1,17 @@
+{
+    "KPlugin": {
+        "Id": "com.github.luxingzhi27.matugen_autothemer",
+        "Name": "Matugen Auto-Themer",
+        "Description": "Material You theme control panel for KDE",
+        "Icon": "preferences-desktop-color",
+        "Authors": [
+            { "Name": "luxingzhi27" }
+        ],
+        "Category": "Appearance",
+        "Version": "1.0",
+        "License": "GPL-3.0+",
+        "Website": "https://github.com/luxingzhi27/matugen-autothemer-for-gnome-extension"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
