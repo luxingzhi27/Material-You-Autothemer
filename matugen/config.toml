@@ -10,7 +10,7 @@
 [templates.gtk3]
 input_path = './templates/gtk.css'
 output_path = '~/.config/gtk-3.0/gtk.css'
-# post_hook 应用于此模板块 
+# post_hook 应用于此模板块
 #post_hook = 'gsettings set org.gnome.desktop.interface gtk-theme ""; gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3'
 
 [templates.gtk4]
@@ -33,31 +33,32 @@ output_path = '~/.config/qt6ct/colors/MaterialYou.conf'
 [templates.kcolorscheme]
 input_path = './templates/kcolorscheme.colors'
 output_path = '~/.local/share/color-schemes/MaterialYou.colors'
-post_hook = 'python3 ~/.local/share/plasma/plasmoids/com.github.luxingzhi27.matugen_autothemer/matugen/scripts/merge_kde_colors.py'
+post_hook = 'python3 ~/.local/share/MaterialYou-Autothemer/matugen/scripts/merge_kde_colors.py'
+
 
 # --- Fuzzel ---
 [templates.fuzzel]
 input_path = './templates/fuzzel.conf'
 output_path = '~/.config/fuzzel/themes/MaterialYou'
-post_hook = 'bash ~/.local/share/plasma/plasmoids/com.github.luxingzhi27.matugen_autothemer/matugen/scripts/colors-apply.sh fuzzel'
+post_hook = 'bash ~/.local/share/MaterialYou-Autothemer/matugen/scripts/colors-apply.sh fuzzel'
 
 # --- Pywalfox ---
 [templates.pywalfox]
 input_path = './templates/pywalfox.json'
 output_path = '~/.cache/wal/colors.json'
-post_hook = 'bash ~/.local/share/plasma/plasmoids/com.github.luxingzhi27.matugen_autothemer/matugen/scripts/colors-apply.sh pywalfox'
+post_hook = 'bash ~/.local/share/MaterialYou-Autothemer/matugen/scripts/colors-apply.sh pywalfox'
 
 # --- Vicinae ---
 [templates.vicinae]
 input_path = './templates/vicinae.toml'
 output_path = '~/.local/share/vicinae/themes/MaterialYou.toml'
-post_hook = 'bash ~/.local/share/plasma/plasmoids/com.github.luxingzhi27.matugen_autothemer/matugen/scripts/colors-apply.sh vicinae'
+post_hook = 'bash ~/.local/share/MaterialYou-Autothemer/matugen/scripts/colors-apply.sh vicinae'
 
 # --- Walker ---
 [templates.walker]
 input_path = './templates/walker.css'
 output_path = '~/.config/walker/themes/MaterialYou/style.css'
-post_hook = 'bash ~/.local/share/plasma/plasmoids/com.github.luxingzhi27.matugen_autothemer/matugen/scripts/colors-apply.sh walker'
+post_hook = 'bash ~/.local/share/MaterialYou-Autothemer/matugen/scripts/colors-apply.sh walker'
 
 # --- VSCode ---
 [templates.code]
@@ -71,5 +72,16 @@ output_path = '~/.config/zed/themes/MaterialYou.json'
 [templates.ghostty]
 input_path = './templates/Terminal/ghostty'
 output_path = '~/.config/ghostty/themes/MaterialYou'
-post_hook = 'bash ~/.local/share/plasma/plasmoids/com.github.luxingzhi27.matugen_autothemer/matugen/scripts/colors-apply.sh ghostty'
+post_hook = 'bash ~/.local/share/MaterialYou-Autothemer/matugen/scripts/colors-apply.sh ghostty'
 
+[templates.gnomeshell]
+input_path = './templates/gnome-shell-colors.scss'
+output_path= './templates/gnome-shell-sass/_colors.scss'
+post_hook = "sassc ~/.local/share/MaterialYou-Autothemer/matugen/templates/gnome-shell.scss ~/.local/share/themes/Material-You/gnome-shell/gnome-shell.css"
+
+
+# 配置rounded window corners reborn边框颜色
+[templates.rwc_border]
+input_path = "./templates/update_rwc_border.py"
+output_path = "./scripts/update_rwc_border_gen.py"
+post_hook = "python3 ~/.local/share/MaterialYou-Autothemer/matugen/scripts/update_rwc_border_gen.py"
