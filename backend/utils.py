@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import configparser
+import fcntl
 import json
 import os
 import shutil
@@ -18,14 +19,182 @@ except ImportError:
 
 # --- 基础配置 ---
 APP_NAME = "MaterialYou-Autothemer"
+
+# 强制使用 XDG 标准路径 (Arch Linux/Single File 模式需求)
+# 无论是否打包，配置都存放在 ~/.config/MaterialYou-Autothemer
 CONFIG_DIR = Path.home() / ".config" / APP_NAME
 CONFIG_FILE = CONFIG_DIR / "config.conf"
 CACHE_DIR = Path.home() / ".cache" / APP_NAME
 STATE_FILE = CACHE_DIR / "state.json"
+LOCK_FILE = CACHE_DIR / "service.lock"
 TEMP_WALLPAPER = Path(tempfile.gettempdir()) / "matugen-temp-wallpaper.png"
-MATUGEN_CONFIG_PATH = (
-    Path.home() / ".local" / "share" / APP_NAME / "matugen" / "config.toml"
-)
+
+# Matugen 配置路径 (用户希望放在 .config 下以便修改)
+MATUGEN_CONFIG_DIR = CONFIG_DIR / "matugen"
+MATUGEN_CONFIG_PATH = MATUGEN_CONFIG_DIR / "config.toml"
+
+
+def init_resources():
+    """
+    初始化资源文件：
+    如果是第一次运行（或者配置文件不存在），将打包在内的 matugen 配置文件
+    释放到用户的 ~/.config/MaterialYou-Autothemer/matugen 目录下。
+    这样用户就可以自定义修改配置了。
+    """
+    if MATUGEN_CONFIG_PATH.exists():
+        return
+
+    log.info("Initializing configuration files...")
+
+    # 1. 确定源路径
+    source_matugen_dir = None
+
+    if getattr(sys, "frozen", False):
+        # PyInstaller --onefile 模式：资源在临时目录 _MEIPASS 中
+        base_path = Path(sys._MEIPASS)
+        source_matugen_dir = base_path / "matugen"
+    else:
+        # 源码模式
+        current_file = Path(__file__).resolve()
+        project_root = current_file.parent.parent
+        source_matugen_dir = project_root / "matugen"
+
+    # 2. 复制文件
+    if source_matugen_dir and source_matugen_dir.exists():
+        try:
+            MATUGEN_CONFIG_DIR.parent.mkdir(parents=True, exist_ok=True)
+            # 复制整个 matugen 文件夹（包含 config.toml 和 templates）
+            if not MATUGEN_CONFIG_DIR.exists():
+                shutil.copytree(
+                    source_matugen_dir, MATUGEN_CONFIG_DIR, dirs_exist_ok=True
+                )
+                log.info(f"Copied default config to {MATUGEN_CONFIG_DIR}")
+        except Exception as e:
+            log.error(f"Failed to initialize resources: {e}")
+    else:
+        log.warning("Could not find default matugen configuration to copy.")
+
+
+def get_matugen_command():
+    """获取 matugen 可执行文件路径"""
+    # 1. 检查 PyInstaller 临时目录 (单文件模式下，二进制文件会被解压到这里)
+    if getattr(sys, "frozen", False):
+        # 优先检查 bin 子目录 (避免与 matugen 配置文件夹冲突)
+        bundled_bin = Path(sys._MEIPASS) / "bin" / "matugen"
+        if bundled_bin.is_file() and os.access(bundled_bin, os.X_OK):
+            return str(bundled_bin)
+
+        meipass_bin = Path(sys._MEIPASS) / "matugen"
+        # 必须确保是文件且可执行
+        if meipass_bin.is_file() and os.access(meipass_bin, os.X_OK):
+            return str(meipass_bin)
+
+    # 2. 检查系统 PATH
+    if shutil.which("matugen"):
+        return "matugen"
+
+    # 3. 检查当前目录 (开发环境)
+    if os.path.isfile("./matugen") and os.access("./matugen", os.X_OK):
+        return "./matugen"
+
+    return "matugen"  # 期望在 PATH 中
+
+
+def ensure_service_running():
+    """
+    检查并自动安装/启动 Systemd 用户服务。
+    服务会指向同目录下的 MaterialYou-Service 可执行文件。
+    """
+    is_frozen = getattr(sys, "frozen", False)
+    is_system_install = os.environ.get("APP_MODE") == "INSTALLED_SYSTEM"
+
+    # 仅在 Linux 下运行
+    # 必须是打包环境 (PyInstaller) 或者系统安装模式 (Pacman)
+    if not sys.platform.startswith("linux") or (
+        not is_frozen and not is_system_install
+    ):
+        return
+
+    service_dir = Path.home() / ".config" / "systemd" / "user"
+    service_file = service_dir / "materialyou-autothemer.service"
+
+    # 获取当前可执行文件所在的目录
+    # 如果是系统安装模式，sys.executable 是 /usr/bin/python3，parent 是 /usr/bin
+    # 这正好是我们存放 wrapper 脚本的地方
+    exe_dir = Path(sys.executable).parent.resolve()
+
+    # 查找后端服务可执行文件 (解耦后的独立二进制 或 Wrapper 脚本)
+    backend_exe = exe_dir / "MaterialYou-Service"
+
+    if not backend_exe.exists():
+        log.warning(
+            f"Backend service executable not found at {backend_exe}. Skipping service registration."
+        )
+        return
+
+    backend_exe_path = str(backend_exe)
+
+    # 服务文件内容
+    service_content = f"""[Unit]
+Description=Material You Autothemer Backend Service
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart="{backend_exe_path}"
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
+"""
+
+    try:
+        service_dir.mkdir(parents=True, exist_ok=True)
+
+        # 检查是否需要更新服务文件 (路径变动或文件不存在)
+        need_update = True
+        if service_file.exists():
+            with open(service_file, "r") as f:
+                if f.read() == service_content:
+                    need_update = False
+
+        if need_update:
+            log.info("Installing/Updating systemd service...")
+            with open(service_file, "w") as f:
+                f.write(service_content)
+
+            subprocess.run(["systemctl", "--user", "daemon-reload"], check=False)
+            subprocess.run(
+                ["systemctl", "--user", "enable", "materialyou-autothemer"], check=False
+            )
+            subprocess.run(
+                ["systemctl", "--user", "restart", "materialyou-autothemer"],
+                check=False,
+            )
+            log.info("Service installed and restarted.")
+        else:
+            # 确保服务正在运行
+            subprocess.run(
+                ["systemctl", "--user", "start", "materialyou-autothemer"], check=False
+            )
+
+    except Exception as e:
+        log.error(f"Failed to setup systemd service: {e}")
+
+
+def acquire_lock():
+    """尝试获取文件锁，用于确保只有一个后台服务在运行"""
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        # 注意：这里我们保持文件打开状态，直到进程结束
+        # 必须将 fp 存储在全局或持久对象中，否则被 GC 回收后锁会释放
+        global _lock_fp
+        _lock_fp = open(LOCK_FILE, "w")
+        fcntl.lockf(_lock_fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except IOError:
+        return False
 
 
 def get_desktop_env():
@@ -180,8 +349,10 @@ def run_matugen(
 
     type_arg = f"scheme-{flavor}" if not flavor.startswith("scheme-") else flavor
 
+    matugen_bin = get_matugen_command()
+
     cmd = [
-        "matugen",
+        matugen_bin,
         "image",
         image_path,
         "--config",

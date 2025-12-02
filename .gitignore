@@ -1,1 +1,32 @@
-__pycache__
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Arch Linux Packaging (makepkg)
+*.pkg.tar.zst
+*.pkg.tar.xz
+arch_pkg/src/
+arch_pkg/pkg/
+arch_pkg/*.log
+
+# Debian Packaging
+*.deb
+dist/deb_package/
+
+# Temporary Build Files
+temp_bin_for_build/
+matugen-bin
+
+# IDEs
+.vscode/
+.idea/
+
+# System
+.DS_Store
+Thumbs.db

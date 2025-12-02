@@ -31,42 +31,71 @@
     *   **KDE Plasma**: Generates and applies custom `.colors` schemes with proper metadata injection.
 *   **Modern UI**: A polished, responsive interface built with **PySide6 (Qt/QML)** featuring custom window controls, animations, and tooltips.
 
-### 🛠️ Prerequisites
-
-Before installing, ensure you have the following dependencies:
-
-1.  **Python 3.10+**
-2.  **Matugen**: The core engine for color generation.
-    ```bash
-    cargo install matugen
-    # Or check your distribution's package manager
-    ```
-3.  **PySide6**: Required for the GUI.
-    ```bash
-    pip install PySide6
-    # Arch Linux: sudo pacman -S python-pyside6
-    # Ubuntu/Debian: sudo apt install python3-pyside6
-    ```
-4.  **Desktop Specifics**:
-    *   **GNOME**: `sassc` (required for compiling GTK themes).
-    *   **KDE**: Standard Plasma desktop tools.
-
 ### 📥 Installation
 
-1.  **Clone the repository**:
+We provide multiple ways to install MaterialYou-Autothemer, depending on your Linux distribution and preference.
+
+#### Method 1: Pre-built Binaries (Universal)
+The easiest way to run the app on any Linux distribution without worrying about dependencies.
+
+1.  Go to the [Releases](https://github.com/Luxingzhi27/Material-You-Autothemer/releases) page.
+2.  Download the latest binary package (usually a zip or tar.gz containing `MaterialYou-Autothemer` and `MaterialYou-Service`).
+3.  Extract the files to a folder of your choice.
+4.  Run `MaterialYou-Autothemer`.
+    *   *Note: The app will automatically register a background service for you on first run.*
+
+#### Method 2: Debian/Ubuntu (.deb)
+For Debian-based systems, you can install the `.deb` package.
+
+1.  Download the `.deb` file from the [Releases](https://github.com/Luxingzhi27/Material-You-Autothemer/releases) page.
+2.  Install it:
     ```bash
-    git clone https://github.com/yourusername/MaterialYou-Autothemer.git
-    cd MaterialYou-Autothemer
+    sudo dpkg -i materialyou-autothemer_*.deb
+    sudo apt-get install -f  # Fix dependencies if needed
+    ```
+3.  Enable the background service:
+    ```bash
+    systemctl --user enable --now materialyou-autothemer
     ```
 
-2.  **Run the installation script**:
-    This script sets up the directory structure, installs the backend service, and creates a desktop entry.
+#### Method 3: Arch Linux (Pacman)
+For Arch Linux users, we recommend installing from source using `makepkg` for better system integration and performance.
+
+1.  Clone this repository:
     ```bash
-    chmod +x install.sh
-    ./install.sh
+    git clone https://github.com/Luxingzhi27/Material-You-Autothemer.git
+    cd Material-You-Autothemer
+    ```
+2.  Build and install the package:
+    ```bash
+    cd arch_pkg
+    makepkg -si
+    ```
+3.  Enable the background service:
+    ```bash
+    systemctl --user enable --now materialyou-autothemer
     ```
 
-3.  **That's it!** You can now launch the app from your application menu.
+### 🛠️ Building from Source
+
+If you want to build the binaries yourself (e.g., for development or other distros):
+
+1.  **Install Dependencies**:
+    *   Python 3.10+
+    *   `pip install PySide6 pyinstaller`
+    *   `matugen` (binary in PATH or `matugen-bin` in project root)
+
+2.  **Run Build Script**:
+    ```bash
+    python3 build.py
+    ```
+    This will generate the binaries in the `dist/` folder.
+
+3.  **Install**:
+    You can use the provided install script to install the built binaries to `/usr/local/bin`:
+    ```bash
+    sudo ./install.sh
+    ```
 
 ### 🚀 Usage
 
@@ -81,27 +110,6 @@ Before installing, ensure you have the following dependencies:
 4.  **Apply**:
     *   Click the **Apply Theme and Wallpaper** button.
     *   Your system theme and wallpaper will update instantly.
-
-### 🔧 Architecture
-
-*   **Frontend**: A Python application using `PySide6` and `QML` for a fluid, hardware-accelerated UI.
-*   **Backend Service**: A background process (`bridge.py`) managed by `systemd --user`. It listens for configuration changes and handles the heavy lifting of applying themes to specific desktop environments.
-*   **Configuration**: Settings are stored in `~/.config/MaterialYou-Autothemer/config.conf`.
-*   **Logs**: Debug logs are available at `~/.cache/MaterialYou-Autothemer/logs/backend.log`.
-
-### ❓ Troubleshooting
-
-**The theme isn't applying?**
-Check the status of the background service:
-```bash
-systemctl --user status materialyou-autothemer.service
-```
-
-**Need more details?**
-View the live logs:
-```bash
-tail -f ~/.cache/MaterialYou-Autothemer/logs/backend.log
-```
 
 ---
 
@@ -130,42 +138,71 @@ tail -f ~/.cache/MaterialYou-Autothemer/logs/backend.log
     *   **KDE Plasma**：生成并应用带有正确元数据的自定义 `.colors` 配色方案。
 *   **现代 UI**：基于 **PySide6 (Qt/QML)** 构建的精致响应式界面，具有自定义窗口控件、动画效果和悬浮提示。
 
-### 🛠️ 环境要求
-
-在安装之前，请确保您已安装以下依赖：
-
-1.  **Python 3.10+**
-2.  **Matugen**：用于生成颜色的核心引擎。
-    ```bash
-    cargo install matugen
-    # 或者检查您的发行版包管理器
-    ```
-3.  **PySide6**：GUI 界面所需。
-    ```bash
-    pip install PySide6
-    # Arch Linux: sudo pacman -S python-pyside6
-    # Ubuntu/Debian: sudo apt install python3-pyside6
-    ```
-4.  **桌面特定依赖**：
-    *   **GNOME**：`sassc` (用于编译 GTK 主题)。
-    *   **KDE**：标准的 Plasma 桌面工具。
-
 ### 📥 安装指南
 
-1.  **克隆仓库**：
+我们提供多种安装方式，请根据您的 Linux 发行版选择最适合的一种。
+
+#### 方法 1：预构建二进制文件 (通用)
+这是最简单的安装方式，无需担心依赖问题，适用于所有 Linux 发行版。
+
+1.  前往 [Releases](https://github.com/Luxingzhi27/Material-You-Autothemer/releases) 页面。
+2.  下载最新的二进制包（通常包含 `MaterialYou-Autothemer` 和 `MaterialYou-Service` 两个文件）。
+3.  解压到任意文件夹。
+4.  直接运行 `MaterialYou-Autothemer`。
+    *   *注意：首次运行时，程序会自动为您注册后台服务。*
+
+#### 方法 2：Debian/Ubuntu (.deb)
+适用于 Debian 系用户。
+
+1.  从 [Releases](https://github.com/Luxingzhi27/Material-You-Autothemer/releases) 页面下载 `.deb` 安装包。
+2.  安装：
     ```bash
-    git clone https://github.com/yourusername/MaterialYou-Autothemer.git
-    cd MaterialYou-Autothemer
+    sudo dpkg -i materialyou-autothemer_*.deb
+    sudo apt-get install -f  # 修复可能缺失的依赖
+    ```
+3.  启用后台服务：
+    ```bash
+    systemctl --user enable --now materialyou-autothemer
     ```
 
-2.  **运行安装脚本**：
-    该脚本将设置目录结构、安装后台服务并创建桌面快捷方式。
+#### 方法 3：Arch Linux (Pacman)
+对于 Arch Linux 用户，我们推荐使用 `makepkg` 从源码安装，以获得最佳的系统集成和性能。
+
+1.  克隆本仓库：
     ```bash
-    chmod +x install.sh
-    ./install.sh
+    git clone https://github.com/Luxingzhi27/Material-You-Autothemer.git
+    cd Material-You-Autothemer
+    ```
+2.  构建并安装软件包：
+    ```bash
+    cd arch_pkg
+    makepkg -si
+    ```
+3.  启用后台服务：
+    ```bash
+    systemctl --user enable --now materialyou-autothemer
     ```
 
-3.  **完成！** 您现在可以从应用菜单启动该应用。
+### 🛠️ 从源码构建
+
+如果您想自己构建二进制文件（例如用于开发或其他发行版）：
+
+1.  **安装依赖**：
+    *   Python 3.10+
+    *   `pip install PySide6 pyinstaller`
+    *   `matugen` (确保在 PATH 中，或者将 `matugen-bin` 放在项目根目录)
+
+2.  **运行构建脚本**：
+    ```bash
+    python3 build.py
+    ```
+    构建完成后，二进制文件将位于 `dist/` 目录中。
+
+3.  **安装**：
+    您可以使用提供的安装脚本将构建好的二进制文件安装到 `/usr/local/bin`：
+    ```bash
+    sudo ./install.sh
+    ```
 
 ### 🚀 使用说明
 
@@ -184,7 +221,7 @@ tail -f ~/.cache/MaterialYou-Autothemer/logs/backend.log
 ### 🔧 架构说明
 
 *   **前端**：使用 `PySide6` 和 `QML` 开发的 Python 应用程序，提供流畅的硬件加速 UI。
-*   **后台服务**：由 `systemd --user` 管理的后台进程 (`bridge.py`)。它监听配置更改并处理将主题应用到特定桌面环境的繁重工作。
+*   **后台服务**：由 `systemd --user` 管理的后台进程。它监听配置更改并处理将主题应用到特定桌面环境的繁重工作。
 *   **配置**：设置存储在 `~/.config/MaterialYou-Autothemer/config.conf`。
 *   **日志**：调试日志位于 `~/.cache/MaterialYou-Autothemer/logs/backend.log`。
 

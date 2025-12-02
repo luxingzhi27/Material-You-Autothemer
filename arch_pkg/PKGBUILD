@@ -1,0 +1,63 @@
+# Maintainer: Luxingzhi27 <luxingzhi27@example.com>
+pkgname=materialyou-autothemer
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Material You Theme Generator for Linux Desktop (Source Install)"
+arch=('any')
+url="https://github.com/Luxingzhi27/Material-You-Autothemer"
+license=('MIT')
+depends=('python' 'pyside6' 'python-dbus' 'matugen-bin')
+optdepends=('sassc: for GNOME support')
+provides=('materialyou-autothemer')
+conflicts=('materialyou-autothemer')
+
+package() {
+    # Define source directory (project root)
+    _project_root="$startdir/.."
+    _install_dir="/usr/lib/$pkgname"
+
+    msg2 "Installing source code to $_install_dir..."
+    mkdir -p "$pkgdir$_install_dir"
+
+    # Copy source modules
+    cp -r "$_project_root/backend" "$pkgdir$_install_dir/"
+    cp -r "$_project_root/frontend" "$pkgdir$_install_dir/"
+    cp -r "$_project_root/matugen" "$pkgdir$_install_dir/"
+
+    msg2 "Creating executable wrappers..."
+    mkdir -p "$pkgdir/usr/bin"
+
+    # 1. GUI Wrapper
+    cat > "$pkgdir/usr/bin/MaterialYou-Autothemer" <<EOF
+#!/bin/sh
+export APP_MODE=INSTALLED_SYSTEM
+# Add install dir to PYTHONPATH so imports work
+export PYTHONPATH=$_install_dir:\$PYTHONPATH
+exec /usr/bin/python3 $_install_dir/frontend/gui.py "\$@"
+EOF
+    chmod +x "$pkgdir/usr/bin/MaterialYou-Autothemer"
+
+    # 2. Service Wrapper
+    cat > "$pkgdir/usr/bin/MaterialYou-Service" <<EOF
+#!/bin/sh
+export APP_MODE=INSTALLED_SYSTEM
+export PYTHONPATH=$_install_dir:\$PYTHONPATH
+exec /usr/bin/python3 $_install_dir/backend/bridge.py "\$@"
+EOF
+    chmod +x "$pkgdir/usr/bin/MaterialYou-Service"
+
+    msg2 "Creating desktop entry..."
+    mkdir -p "$pkgdir/usr/share/applications"
+    cat > "$pkgdir/usr/share/applications/materialyou-autothemer.desktop" <<EOF
+[Desktop Entry]
+Name=Material You Theme
+Comment=Customize your desktop colors
+Exec=MaterialYou-Autothemer
+Icon=preferences-desktop-color
+Terminal=false
+Type=Application
+Categories=Settings;DesktopSettings;Utility;
+EOF
+
+    msg2 "Installation complete."
+}
