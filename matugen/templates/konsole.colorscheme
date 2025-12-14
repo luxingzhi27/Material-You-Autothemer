@@ -1,0 +1,123 @@
+[Background]
+;; Surface - 标准背景
+Color={{colors.surface.default.red}},{{colors.surface.default.green}},{{colors.surface.default.blue}}
+
+[BackgroundFaint]
+Color={{colors.surface_container.default.red}},{{colors.surface_container.default.green}},{{colors.surface_container.default.blue}}
+
+[BackgroundIntense]
+Color={{colors.surface_container_high.default.red}},{{colors.surface_container_high.default.green}},{{colors.surface_container_high.default.blue}}
+
+[Color0]
+;; Black - Normal -> On Surface Variant
+;; 智能灰色：白底为深灰，黑底为浅灰。防止黑色文字在黑色背景下消失。
+Color={{colors.on_surface_variant.default.red}},{{colors.on_surface_variant.default.green}},{{colors.on_surface_variant.default.blue}}
+
+[Color0Faint]
+Color={{colors.surface_variant.default.red}},{{colors.surface_variant.default.green}},{{colors.surface_variant.default.blue}}
+
+[Color0Intense]
+;; Black - Intense -> Outline
+Color={{colors.outline.default.red}},{{colors.outline.default.green}},{{colors.outline.default.blue}}
+
+[Color1]
+;; Red - Normal -> Error
+;; 错误色：在 Light Mode 是鲜艳红色，在 Dark Mode 是柔和亮红。
+Color={{colors.error.default.red}},{{colors.error.default.green}},{{colors.error.default.blue}}
+
+[Color1Faint]
+Color={{colors.error_container.default.red}},{{colors.error_container.default.green}},{{colors.error_container.default.blue}}
+
+[Color1Intense]
+Color={{colors.on_error_container.default.red}},{{colors.on_error_container.default.green}},{{colors.on_error_container.default.blue}}
+
+[Color2]
+;; Green - Normal -> Tertiary
+;; 关键修正：使用 Tertiary (Tone 40/80)。
+;; Light Mode: 鲜艳的第三色（通常是绿色/粉色/黄色），不再是黑色。
+;; Dark Mode: 亮色变体，保证可见。
+Color={{colors.tertiary.default.red}},{{colors.tertiary.default.green}},{{colors.tertiary.default.blue}}
+
+[Color2Faint]
+Color={{colors.tertiary_container.default.red}},{{colors.tertiary_container.default.green}},{{colors.tertiary_container.default.blue}}
+
+[Color2Intense]
+Color={{colors.on_tertiary_container.default.red}},{{colors.on_tertiary_container.default.green}},{{colors.on_tertiary_container.default.blue}}
+
+[Color3]
+;; Yellow - Normal -> Secondary
+;; 辅助色：Light Mode 下是鲜艳颜色。
+Color={{colors.secondary.default.red}},{{colors.secondary.default.green}},{{colors.secondary.default.blue}}
+
+[Color3Faint]
+Color={{colors.secondary_container.default.red}},{{colors.secondary_container.default.green}},{{colors.secondary_container.default.blue}}
+
+[Color3Intense]
+Color={{colors.on_secondary_container.default.red}},{{colors.on_secondary_container.default.green}},{{colors.on_secondary_container.default.blue}}
+
+[Color4]
+;; Blue - Normal -> Primary
+;; 关键修正：使用 Primary (Tone 40/80)。
+;; Light Mode: 它是你壁纸的主题色（深蓝/深紫等），不仅清晰而且是彩色的。
+;; Dark Mode: 它是 Tone 80 的淡色，在深色背景上足够清晰（如果你的背景不是极度高光的图片）。
+Color={{colors.primary.default.red}},{{colors.primary.default.green}},{{colors.primary.default.blue}}
+
+[Color4Faint]
+Color={{colors.primary_container.default.red}},{{colors.primary_container.default.green}},{{colors.primary_container.default.blue}}
+
+[Color4Intense]
+;; Blue - Intense -> On Primary Container
+;; 高亮区使用对比度最高的颜色
+Color={{colors.on_primary_container.default.red}},{{colors.on_primary_container.default.green}},{{colors.on_primary_container.default.blue}}
+
+[Color5]
+;; Magenta - Normal -> Tertiary (复用多彩色)
+Color={{colors.tertiary.default.red}},{{colors.tertiary.default.green}},{{colors.tertiary.default.blue}}
+
+[Color5Faint]
+Color={{colors.tertiary_container.default.red}},{{colors.tertiary_container.default.green}},{{colors.tertiary_container.default.blue}}
+
+[Color5Intense]
+Color={{colors.on_tertiary_container.default.red}},{{colors.on_tertiary_container.default.green}},{{colors.on_tertiary_container.default.blue}}
+
+[Color6]
+;; Cyan - Normal -> Secondary (复用多彩色)
+Color={{colors.secondary.default.red}},{{colors.secondary.default.green}},{{colors.secondary.default.blue}}
+
+[Color6Faint]
+Color={{colors.secondary_container.default.red}},{{colors.secondary_container.default.green}},{{colors.secondary_container.default.blue}}
+
+[Color6Intense]
+Color={{colors.on_secondary_container.default.red}},{{colors.on_secondary_container.default.green}},{{colors.on_secondary_container.default.blue}}
+
+[Color7]
+;; White - Normal -> On Surface
+Color={{colors.on_surface.default.red}},{{colors.on_surface.default.green}},{{colors.on_surface.default.blue}}
+
+[Color7Faint]
+Color={{colors.on_surface_variant.default.red}},{{colors.on_surface_variant.default.green}},{{colors.on_surface_variant.default.blue}}
+
+[Color7Intense]
+;; White - Intense -> Inverse Surface
+Color={{colors.inverse_surface.default.red}},{{colors.inverse_surface.default.green}},{{colors.inverse_surface.default.blue}}
+
+[Foreground]
+;; Standard Text
+Color={{colors.on_surface.default.red}},{{colors.on_surface.default.green}},{{colors.on_surface.default.blue}}
+
+[ForegroundFaint]
+Color={{colors.on_surface_variant.default.red}},{{colors.on_surface_variant.default.green}},{{colors.on_surface_variant.default.blue}}
+
+[ForegroundIntense]
+Color={{colors.on_surface.default.red}},{{colors.on_surface.default.green}},{{colors.on_surface.default.blue}}
+
+[General]
+Anchor=0.5,0.5
+Blur=true
+ColorRandomization=false
+Description=MaterailYou
+FillStyle=Tile
+Opacity=0.85
+Wallpaper=
+WallpaperFlipType=NoFlip
+WallpaperOpacity=1
