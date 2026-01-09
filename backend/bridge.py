@@ -56,6 +56,11 @@ class GnomeEngine:
         scheme = self.settings_interface.get_string("color-scheme")
         mode = "dark" if "dark" in scheme else "light"
 
+        # 获取当前壁纸路径 (用于触发配置变更)
+        uri = (
+            self.settings_bg.get_string("picture-uri").replace("file://", "").strip("'")
+        )
+
         try:
             # 读取现有配置
             config = configparser.ConfigParser()
@@ -67,6 +72,7 @@ class GnomeEngine:
             # 强制更新配置文件 (即使值相同，写入操作也会更新 mtime，从而触发 on_config_changed)
             # 注意：ConfigParser 默认行为可能不会写入未变更的值，但 open('w') 会刷新文件
             config["General"]["colorMode"] = mode
+            config["General"]["currentWallpaper"] = uri
 
             # 确保目录存在
             utils.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -81,9 +87,9 @@ class GnomeEngine:
         """配置文件变化时，运行 Matugen"""
         # 过滤事件，避免重复触发 (CHANGES_DONE_HINT 通常是写入完成)
         if event_type == self.Gio.FileMonitorEvent.CHANGES_DONE_HINT:
-            self.run_matugen_process()
+            self.update()
 
-    def run_matugen_process(self):
+    def update(self):
         mode, flavor, _ = utils.read_config()
         wallpaper = utils.get_current_wallpaper(mode)
 
@@ -185,7 +191,18 @@ if __name__ == "__main__":
     utils.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
     log.info("Starting Material You Autothemer Backend Service...")
-    if "gnome" in utils.get_desktop_env():
-        GnomeEngine().start()
-    else:
+
+    # 在桌面会话初始化期间等待环境变量准备就绪，避免误判
+    desktop_tokens = ()
+    for _ in range(10):
+        desktop_tokens = utils.get_desktop_env(force_refresh=True) or ()
+        if desktop_tokens:
+            break
+        time.sleep(1)
+
+    if utils.is_kde_session():
         KdeEngine().start()
+    else:
+        if not desktop_tokens:
+            log.info("Desktop environment not detected. Defaulting to GNOME backend.")
+        GnomeEngine().start()

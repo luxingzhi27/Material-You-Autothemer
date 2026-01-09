@@ -280,14 +280,13 @@ def run_gui():
                 log.error(f"Failed to apply theme: {e}")
 
         def set_system_wallpaper(self, path):
-            desktop = utils.get_desktop_env()
             try:
-                if "gnome" in desktop:
+                if utils.is_gnome_session():
                     cmd = f"gsettings set org.gnome.desktop.background picture-uri 'file://{path}'"
                     os.system(cmd)
                     cmd = f"gsettings set org.gnome.desktop.background picture-uri-dark 'file://{path}'"
                     os.system(cmd)
-                elif "kde" in desktop:
+                elif utils.is_kde_session():
                     # Try plasma-apply-wallpaperimage
                     cmd = f"plasma-apply-wallpaperimage '{path}'"
                     os.system(cmd)

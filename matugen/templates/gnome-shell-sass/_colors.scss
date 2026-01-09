@@ -6,32 +6,32 @@
 @import '_palette.scss';
 
 // 2. Matugen 生成的颜色 (Values adapt to mode automatically)
-$m-primary: #8f4953;
+$m-primary: #006b5a;
 $m-on-primary: #ffffff;
-$m-primary-container: #ffd9dc;
-$m-on-primary-container: #3b0713;
+$m-primary-container: #7af8db;
+$m-on-primary-container: #00201a;
 
-$m-secondary: #765659;
+$m-secondary: #096b5a;
 $m-on-secondary: #ffffff;
-$m-secondary-container: #ffd9dc;
-$m-on-secondary-container: #2c1518;
+$m-secondary-container: #a1f2dc;
+$m-on-secondary-container: #00201a;
 
-$m-tertiary: #785930;
+$m-tertiary: #126682;
 $m-on-tertiary: #ffffff;
 
 $m-error: #ba1a1a;
 $m-on-error: #ffffff;
 
-$m-surface: #fff8f7;
-$m-on-surface: #22191a;
-$m-surface-variant: #f4ddde;
-$m-on-surface-variant: #524344;
-$m-outline: #847374;
+$m-surface: #f4faff;
+$m-on-surface: #131d22;
+$m-surface-variant: #d0e6f2;
+$m-on-surface-variant: #354a54;
+$m-outline: #657a85;
 
-$m-surface-container: #fceaea;
-$m-surface-container-low: #fff0f0;
-$m-surface-container-high: #f6e4e5;
-$m-surface-container-highest: #f0dedf;
+$m-surface-container: #e4eff7;
+$m-surface-container-low: #eaf5fc;
+$m-surface-container-high: #dfeaf1;
+$m-surface-container-highest: #d9e4eb;
 
 // 3. 核心配置变量
 $variant: 'light';

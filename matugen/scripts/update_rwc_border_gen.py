@@ -5,9 +5,9 @@ gi.require_version('Gio', '2.0')
 from gi.repository import Gio, GLib
 
 # 1. 获取 Matugen 生成的颜色
-r = 143 / 255.0
-g = 73 / 255.0
-b = 83 / 255.0
+r = 0 / 255.0
+g = 107 / 255.0
+b = 90 / 255.0
 a = 0.8  # 不透明度
 
 # 2. 定义 Schema ID 和 Key

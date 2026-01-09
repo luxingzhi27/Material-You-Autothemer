@@ -5,67 +5,121 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${BLUE}>>> Material You Autothemer Installer${NC}"
-
-# --- 1. 检测发行版 ---
-if [ -f /etc/arch-release ]; then
-    echo -e "${GREEN}✅ Detected Arch Linux.${NC}"
-    echo "----------------------------------------------------------------"
-    echo "For Arch Linux, the recommended installation method is using 'makepkg'."
-    echo "This will install the application from source using system Python libraries,"
-    echo "which is faster and cleaner than the standalone binary."
-    echo ""
-    echo "👉 Please run the following commands:"
-    echo -e "${BLUE}   cd arch_pkg${NC}"
-    echo -e "${BLUE}   makepkg -si${NC}"
-    echo "----------------------------------------------------------------"
-    exit 0
-fi
-
-# --- 2. 其他发行版 (通用二进制安装) ---
-echo "Detected Non-Arch System. Proceeding with Binary Installation..."
-
-INSTALL_DIR="/usr/local/bin"
-DESKTOP_DIR="/usr/share/applications"
 APP_NAME="MaterialYou-Autothemer"
 SERVICE_NAME="MaterialYou-Service"
 
-# 检查是否需要构建
-if [ ! -f "dist/$APP_NAME" ] || [ ! -f "dist/$SERVICE_NAME" ]; then
-    echo "⚠️  Pre-built binaries not found in 'dist/'."
-    echo "🔨 Running build script now (requires PyInstaller)..."
+echo -e "${BLUE}>>> Material You Autothemer Installer${NC}"
+echo "This script installs the application using pre-built packages."
+echo "Please ensure you have downloaded the correct package for your system from the Releases page."
+echo ""
 
-    if ! command -v python3 &> /dev/null; then
-        echo -e "${RED}Error: python3 is required to build.${NC}"
-        exit 1
-    fi
+# --- 1. Arch Linux ---
+if [ -f /etc/arch-release ]; then
+    echo -e "${GREEN}✅ Detected Arch Linux.${NC}"
 
-    python3 build.py
+    PKG_FILE=$(find . -maxdepth 1 -name "*.pkg.tar.zst" | head -n 1)
 
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}Build failed. Please check errors above.${NC}"
+    if [ -n "$PKG_FILE" ]; then
+        echo "📦 Found package: $PKG_FILE"
+        echo "Installing..."
+        sudo pacman -U "$PKG_FILE"
+        echo -e "${GREEN}✅ Installation Complete!${NC}"
+        exit 0
+    else
+        echo -e "${RED}❌ Error: Arch package (*.pkg.tar.zst) not found.${NC}"
+        echo "Please download the package from the Releases page and place it in this directory."
         exit 1
     fi
 fi
+
+# --- 2. Debian/Ubuntu ---
+if [ -f /etc/debian_version ]; then
+    echo -e "${GREEN}✅ Detected Debian/Ubuntu based system.${NC}"
+
+    DEB_FILE=$(find . -maxdepth 1 -name "*.deb" | head -n 1)
+
+    if [ -n "$DEB_FILE" ]; then
+        echo "📦 Found package: $DEB_FILE"
+        echo "Installing..."
+
+        if command -v apt &> /dev/null; then
+            sudo apt install "./$DEB_FILE" -y
+        else
+            sudo dpkg -i "$DEB_FILE"
+            sudo apt-get install -f -y
+        fi
+
+        echo -e "${GREEN}✅ Installation Complete!${NC}"
+        exit 0
+    else
+        echo -e "${RED}❌ Error: Debian package (*.deb) not found.${NC}"
+        echo "Please download the .deb package from the Releases page and place it in this directory."
+        exit 1
+    fi
+fi
+
+# --- 3. Fedora/RHEL/CentOS/OpenSUSE (RPM) ---
+if [ -f /etc/redhat-release ] || [ -f /etc/SuSE-release ] || [ -f /etc/fedora-release ]; then
+    echo -e "${GREEN}✅ Detected RPM-based system.${NC}"
+
+    RPM_FILE=$(find . -maxdepth 1 -name "*.rpm" | head -n 1)
+
+    if [ -n "$RPM_FILE" ]; then
+        echo "📦 Found package: $RPM_FILE"
+        echo "Installing..."
+
+        if command -v dnf &> /dev/null; then
+            sudo dnf install "./$RPM_FILE" -y
+        elif command -v zypper &> /dev/null; then
+            sudo zypper install "./$RPM_FILE"
+        else
+            sudo rpm -ivh "$RPM_FILE"
+        fi
+
+        echo -e "${GREEN}✅ Installation Complete!${NC}"
+        exit 0
+    else
+        echo -e "${RED}❌ Error: RPM package (*.rpm) not found.${NC}"
+        echo "Please download the .rpm package from the Releases page and place it in this directory."
+        exit 1
+    fi
+fi
+
+# --- 4. Generic Linux (Binaries) ---
+echo "Detected Generic Linux System."
+
+if [ -f "$APP_NAME" ] && [ -f "$SERVICE_NAME" ]; then
+    echo -e "${GREEN}📦 Found binaries: $APP_NAME, $SERVICE_NAME${NC}"
+else
+    # Check inside a dist folder just in case
+    if [ -f "dist/$APP_NAME" ] && [ -f "dist/$SERVICE_NAME" ]; then
+         cd dist
+         echo -e "${GREEN}📦 Found binaries in dist/${NC}"
+    else
+        echo -e "${RED}❌ Error: Binaries not found.${NC}"
+        echo "Please download the binary archive from the Releases page,"
+        echo "extract it here, and ensure '$APP_NAME' and '$SERVICE_NAME' are present."
+        exit 1
+    fi
+fi
+
+INSTALL_DIR="/usr/local/bin"
+DESKTOP_DIR="/usr/share/applications"
 
 echo "📂 Installing to $INSTALL_DIR..."
 
-# 检查权限
-if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root (sudo) to install to /usr/local/bin"
-    exec sudo "$0" "$@"
-    exit
-fi
+# Request root once
+echo -e "${BLUE}🔒 Requesting root permissions...${NC}"
+sudo -v
 
-# 复制二进制文件
-cp "dist/$APP_NAME" "$INSTALL_DIR/$APP_NAME"
-cp "dist/$SERVICE_NAME" "$INSTALL_DIR/$SERVICE_NAME"
-chmod +x "$INSTALL_DIR/$APP_NAME"
-chmod +x "$INSTALL_DIR/$SERVICE_NAME"
+sudo cp "$APP_NAME" "$INSTALL_DIR/$APP_NAME"
+sudo cp "$SERVICE_NAME" "$INSTALL_DIR/$SERVICE_NAME"
+sudo chmod +x "$INSTALL_DIR/$APP_NAME"
+sudo chmod +x "$INSTALL_DIR/$SERVICE_NAME"
 
-# 创建桌面快捷方式
 echo "🔗 Creating desktop shortcut..."
-cat <<EOF > "$DESKTOP_DIR/materialyou-autothemer.desktop"
+TMP_DESKTOP=$(mktemp)
+cat <<EOF > "$TMP_DESKTOP"
 [Desktop Entry]
 Name=Material You Theme
 Comment=Customize your desktop colors
@@ -75,6 +129,9 @@ Terminal=false
 Type=Application
 Categories=Settings;DesktopSettings;Utility;
 EOF
+
+sudo mv "$TMP_DESKTOP" "$DESKTOP_DIR/materialyou-autothemer.desktop"
+sudo chmod 644 "$DESKTOP_DIR/materialyou-autothemer.desktop"
 
 echo ""
 echo -e "${GREEN}✅ Installation Complete!${NC}"

@@ -36,6 +36,11 @@ output_path = '~/.local/share/color-schemes/MaterialYou.colors'
 post_hook = 'python3 ~/.config/MaterialYou-Autothemer/matugen/scripts/merge_kde_colors.py'
 
 
+[templates.konsole]
+input_path = './templates/konsole.colorscheme'
+output_path = '~/.local/share/konsole/MaterialYou.colorscheme'
+
+
 # --- Fuzzel ---
 [templates.fuzzel]
 input_path = './templates/fuzzel.conf'

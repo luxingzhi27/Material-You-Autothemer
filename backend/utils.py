@@ -33,6 +33,8 @@ TEMP_WALLPAPER = Path(tempfile.gettempdir()) / "matugen-temp-wallpaper.png"
 MATUGEN_CONFIG_DIR = CONFIG_DIR / "matugen"
 MATUGEN_CONFIG_PATH = MATUGEN_CONFIG_DIR / "config.toml"
 
+_DESKTOP_ENV_CACHE = None
+
 
 def init_resources():
     """
@@ -197,8 +199,106 @@ def acquire_lock():
         return False
 
 
-def get_desktop_env():
-    return os.environ.get("XDG_CURRENT_DESKTOP", "").lower()
+def get_desktop_env(force_refresh=False):
+    global _DESKTOP_ENV_CACHE
+    if force_refresh or _DESKTOP_ENV_CACHE is None:
+        tokens = []
+        for key in ("XDG_CURRENT_DESKTOP", "XDG_SESSION_DESKTOP", "DESKTOP_SESSION", "GDMSESSION"):
+            value = os.environ.get(key)
+            if not value:
+                continue
+            for part in value.replace(";", ":").split(":"):
+                part = part.strip().lower()
+                if part and part not in tokens:
+                    tokens.append(part)
+
+        if not tokens:
+            for token in _detect_desktop_from_dbus():
+                if token not in tokens:
+                    tokens.append(token)
+
+        if not tokens:
+            for token in _detect_desktop_from_processes():
+                if token not in tokens:
+                    tokens.append(token)
+
+        if not tokens:
+            if os.environ.get("KDE_FULL_SESSION") == "true" or shutil.which("plasmashell"):
+                tokens.append("kde")
+            elif os.environ.get("GNOME_DESKTOP_SESSION_ID") or shutil.which("gsettings"):
+                tokens.append("gnome")
+
+        if tokens:
+            _DESKTOP_ENV_CACHE = tuple(tokens)
+        else:
+            _DESKTOP_ENV_CACHE = tuple()
+
+    return _DESKTOP_ENV_CACHE
+
+
+def _detect_desktop_from_dbus():
+    """
+    通过 DBus session bus 名称检测桌面环境 (GNOME/KDE)
+    """
+    try:
+        import dbus  # type: ignore
+    except Exception:
+        return []
+
+    try:
+        names = dbus.SessionBus().list_names()
+    except Exception:
+        return []
+
+    tokens = []
+    if any(name.startswith("org.gnome.") or name == "org.gnome.Shell" for name in names):
+        tokens.append("gnome")
+    if any(name.startswith("org.kde.") or name == "org.kde.KWin" for name in names):
+        tokens.append("kde")
+    return tokens
+
+
+def _detect_desktop_from_processes():
+    """
+    通过正在运行的进程检测桌面环境 (GNOME/KDE)
+    """
+    try:
+        output = subprocess.check_output(
+            ["ps", "-eo", "comm"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).lower()
+    except Exception:
+        return []
+
+    tokens = []
+    if any(proc in output for proc in ("gnome-shell", "gnome-session-binary", "mutter")):
+        tokens.append("gnome")
+    if any(proc in output for proc in ("plasmashell", "kwin_x11", "kwin_wayland", "ksmserver")):
+        tokens.append("kde")
+    return tokens
+
+
+def is_gnome_session():
+    desktop_tokens = get_desktop_env() or ()
+    if not desktop_tokens:
+        return True
+    if any(token in desktop_tokens for token in ("gnome", "unity", "cinnamon", "pantheon")):
+        return True
+    if os.environ.get("GNOME_DESKTOP_SESSION_ID"):
+        return True
+    session = os.environ.get("DESKTOP_SESSION", "").lower()
+    return session in ("gnome", "unity") or session.startswith("gnome-")
+
+
+def is_kde_session():
+    desktop_tokens = get_desktop_env() or ()
+    if any(token in desktop_tokens for token in ("kde", "plasma")):
+        return True
+    if os.environ.get("KDE_FULL_SESSION") == "true":
+        return True
+    session = os.environ.get("DESKTOP_SESSION", "").lower()
+    return session in ("kde", "plasma") or session.startswith("plasma-")
 
 
 def read_config():
@@ -297,11 +397,10 @@ def ensure_compatible_image(image_path):
 
 def get_current_wallpaper(mode="dark"):
     """[通用] 获取并预处理当前壁纸"""
-    desktop = get_desktop_env()
     raw_path = ""
 
     try:
-        if "gnome" in desktop:
+        if is_gnome_session():
             import gi
 
             gi.require_version("Gio", "2.0")
@@ -311,7 +410,7 @@ def get_current_wallpaper(mode="dark"):
             key = "picture-uri-dark" if mode == "dark" else "picture-uri"
             raw_path = settings.get_string(key).replace("file://", "").strip("'")
 
-        elif "kde" in desktop:
+        elif is_kde_session():
             # 使用 python-dbus 替代外部命令
             import dbus
 
@@ -375,7 +474,7 @@ def run_matugen(
             return res.stdout
 
         # [KDE] Create MaterialYouAlt color scheme
-        if "kde" in get_desktop_env():
+        if is_kde_session():
             try:
                 colors_dir = Path.home() / ".local/share/color-schemes"
                 src = colors_dir / "MaterialYou.colors"
